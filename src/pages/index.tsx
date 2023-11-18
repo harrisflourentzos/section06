@@ -1,20 +1,8 @@
-import eventsService from "../services/dummy-events-service";
+import eventsService from "../services/firebase-events-service";
 import EventList from "../components/events/event-list";
-import { useEffect, useState } from "react";
-import { Event } from "../types/types";
+import { GetStaticProps, InferGetStaticPropsType } from "next";
 
-function HomePage() {
-  const [events, setEvents] = useState<Event[]>([]);
-
-  useEffect(() => {
-    async function getEvents() {
-      const events = await eventsService.getFeaturedEvents();
-      setEvents(events);
-    }
-
-    getEvents();
-  }, []);
-
+function HomePage({ events }: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <div>
       <EventList items={events} />
@@ -22,6 +10,10 @@ function HomePage() {
   );
 }
 
-async function getStaticProps() {}
+export const getStaticProps: GetStaticProps = async () => {
+  const events = await eventsService.getFeaturedEvents();
+
+  return { props: { events: events }, revalidate: 300 };
+};
 
 export default HomePage;

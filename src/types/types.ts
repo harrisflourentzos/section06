@@ -8,9 +8,14 @@ export interface Event {
   isFeatured: boolean;
 }
 
+export interface MonthYear {
+  year: number;
+  month: number;
+}
+
 export interface EventsService {
   getAllEvents: () => Promise<Event[]>;
   getFeaturedEvents: () => Promise<Event[]>;
-  getFilteredEvents: (dateFilter: any) => Promise<Event[]>;
+  getFilteredEvents: (dateFilter: MonthYear) => Promise<Event[]>;
   getEventById: (id: any) => Promise<Event | undefined>;
 }

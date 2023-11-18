@@ -1,4 +1,4 @@
-import { Event, EventsService } from "@/types/types";
+import { Event, EventsService, MonthYear } from "@/types/types";
 
 const FIREBASE_URL = "https://learningreact-4a2be-default-rtdb.firebaseio.com/";
 
@@ -23,7 +23,7 @@ async function getFeaturedEvents() {
   return events.filter((event) => event.isFeatured);
 }
 
-async function getFilteredEvents(dateFilter: any) {
+async function getFilteredEvents(dateFilter: MonthYear) {
   const events = await getAllEvents();
   const { year, month } = dateFilter;
 

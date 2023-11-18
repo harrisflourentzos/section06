@@ -1,5 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { Fragment } from "react";
 
 import EventList from "../../components/events/event-list";
 import ResultsTitle from "../../components/events/results-title";
@@ -7,49 +6,18 @@ import Button from "../../components/ui/button";
 import ErrorAlert from "../../components/ui/error-alert";
 import eventsService from "@/services/firebase-events-service";
 import { Event } from "../../types/types";
+import { GetServerSideProps } from "next";
 
-function FilteredEventsPage() {
-  const router = useRouter();
-  const { getFilteredEvents } = eventsService;
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>();
+type Props = {
+  events: Event[];
+  filters: { numYear: number; numMonth: number };
+  isFiltersValid: boolean;
+};
 
-  const filterData = router.query.slug;
+function FilteredEventsPage({ events, isFiltersValid, filters }: Props) {
+  const { numMonth, numYear } = filters;
 
-  // if (!filterData) {
-  //   return <p className="center">Loading...</p>;
-  // }
-
-  const filteredYear = filterData![0];
-  const filteredMonth = filterData![1];
-
-  const numYear = +filteredYear;
-  const numMonth = +filteredMonth;
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const events = await getFilteredEvents({
-          year: numYear,
-          month: numMonth,
-        });
-        console.log("Inside useEffect");
-        setFilteredEvents(events);
-      } catch (error) {
-        setFilteredEvents([]);
-      }
-    };
-
-    fetchEvents();
-  }, [getFilteredEvents, numMonth, numYear]);
-
-  if (
-    isNaN(numYear) ||
-    isNaN(numMonth) ||
-    numYear > 2030 ||
-    numYear < 2021 ||
-    numMonth < 1 ||
-    numMonth > 12
-  ) {
+  if (!isFiltersValid) {
     return (
       <Fragment>
         <ErrorAlert>
@@ -62,7 +30,7 @@ function FilteredEventsPage() {
     );
   }
 
-  if (!filteredEvents || filteredEvents.length === 0) {
+  if (!events || events.length === 0) {
     return (
       <Fragment>
         <ErrorAlert>
@@ -80,9 +48,53 @@ function FilteredEventsPage() {
   return (
     <Fragment>
       <ResultsTitle date={date} />
-      <EventList items={filteredEvents} />
+      <EventList items={events} />
     </Fragment>
   );
 }
+
+export const getServerSideProps = (async (context) => {
+  const { params } = context;
+  const { getFilteredEvents } = eventsService;
+
+  const filterData = params?.slug;
+
+  const filteredYear = filterData![0];
+  const filteredMonth = filterData![1];
+
+  const numYear = +filteredYear;
+  const numMonth = +filteredMonth;
+
+  const isFiltersNotValid =
+    isNaN(numYear) ||
+    isNaN(numMonth) ||
+    numYear > 2030 ||
+    numYear < 2021 ||
+    numMonth < 1 ||
+    numMonth > 12;
+
+  if (isFiltersNotValid) {
+    return {
+      props: {
+        events: [],
+        isFiltersValid: false,
+        filters: { numMonth: 0, numYear: 0 },
+      } as Props,
+    };
+  }
+
+  const filteredEvents = await getFilteredEvents({
+    year: numYear,
+    month: numMonth,
+  });
+
+  return {
+    props: {
+      events: filteredEvents,
+      filters: { numMonth, numYear },
+      isFiltersValid: true,
+    } as Props,
+  };
+}) satisfies GetServerSideProps<Props>;
 
 export default FilteredEventsPage;

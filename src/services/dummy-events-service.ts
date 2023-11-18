@@ -1,4 +1,4 @@
-import { Event, EventsService } from "@/types/types";
+import { Event, EventsService, MonthYear } from "@/types/types";
 import { DUMMY_EVENTS } from "../data/dummy-data";
 
 const eventsService: EventsService = {
@@ -14,7 +14,7 @@ const eventsService: EventsService = {
     return DUMMY_EVENTS.find((event) => event.id === id);
   },
 
-  getFilteredEvents: async function (dateFilter: any) {
+  getFilteredEvents: async function (dateFilter: MonthYear) {
     const { year, month } = dateFilter;
 
     let filteredEvents = DUMMY_EVENTS.filter((event) => {

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 import { useRouter } from "next/router";
 
 import eventsService from "../../services/dummy-events-service";
@@ -6,19 +6,16 @@ import EventList from "../../components/events/event-list";
 import EventsSearch from "../../components/events/events-search";
 
 import { Event } from "../../types/types";
+import { InferGetServerSidePropsType, GetStaticProps } from "next";
 
-function AllEventsPage() {
+type Props = {
+  events: Event[];
+};
+
+function AllEventsPage({
+  events,
+}: InferGetServerSidePropsType<typeof getStaticProps>) {
   const router = useRouter();
-  const [events, setEvents] = useState<Event[]>([]);
-
-  useEffect(() => {
-    async function getEvents() {
-      const events = await eventsService.getAllEvents();
-      setEvents(events);
-    }
-
-    getEvents();
-  }, []);
 
   function findEventsHandler(year: string, month: string) {
     const fullPath = `/events/${year}/${month}`;
@@ -33,5 +30,11 @@ function AllEventsPage() {
     </Fragment>
   );
 }
+
+export const getStaticProps = (async () => {
+  const events = await eventsService.getAllEvents();
+
+  return { props: { events: events } as Props };
+}) satisfies GetStaticProps<Props>;
 
 export default AllEventsPage;
